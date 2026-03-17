@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e63946">
+    <link rel="icon" type="image/png" href="icon.png">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pizzalaskuri">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <title>Pro Pizzalaskuri v7</title>
+    <style>
+        :root {
+            --primary: #e63946;
+            --secondary: #457b9d;
+            --bg: #f1faee;
+            --text: #1d3557;
+            --card: #ffffff;
+            --accent: #e07a5f;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 15px; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .container { max-width: 450px; margin: 0 auto; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 20px; font-size: 1.6rem; }
+        h2 { border-bottom: 2px solid var(--bg); padding-bottom: 5px; margin-top: 25px; color: var(--secondary); font-size: 1.1rem; }
+        h3 { color: var(--accent); margin-top: 20px; margin-bottom: 10px; font-size: 1.05rem; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 0.85rem; }
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            border: 2px solid #edf2f4; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            -webkit-user-select: auto;
+            user-select: auto;
+        }
+        button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .results { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 15px; display: none; border: 1px solid #dee2e6; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1rem; border-bottom: 1px dashed #ced4da; padding-bottom: 5px; }
+        .highlight { font-weight: bold; color: var(--primary); }
+        .info-note { font-size: 0.85rem; color: #666; font-style: italic; margin-top: 5px; }
+        .instruction-box { background-color: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 0.95rem; border: 1px solid #ffe69c; }
+        .ball-info { background-color: #e1f5fe; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; text-align: center; color: var(--secondary); }
+        hr { border: 0; height: 1px; background: #dee2e6; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🍕 Pro Pizzalaskuri</h1>
+    
+    <div class="input-group">
+        <label>Taikinan kokonaispaino (g)</label>
+        <input type="number" id="totalWeight" value="1200" inputmode="numeric">
+    </div>
+
+    <div class="input-group">
+        <label>Pizzapallojen määrä (kpl)</label>
+        <input type="number" id="ballCount" value="2" inputmode="numeric">
+    </div>
+
+    <h2>Kertoimet (%)</h2>
+    <div class="input-group"><label>Vesi / Hydraatio (%)</label><input type="number" id="hydration" value="70" inputmode="decimal"></div>
+    <div class="input-group"><label>Suola (%)</label><input type="number" id="salt" value="2.0" inputmode="decimal"></div>
+    <div class="input-group"><label>Oliiviöljy (%)</label><input type="number" id="oil" value="2.0" inputmode="decimal"></div>
+    <div class="input-group"><label>Gluteenijauho (%)</label><input type="number" id="gluten" value="2.0" inputmode="decimal"></div>
+    <div class="input-group"><label>Kuivahiiva (%)</label><input type="number" id="yeast" value="0.2" inputmode="decimal" step="0.01"></div>
+
+    <h2>Esitaikina</h2>
+    <div class="input-group"><label>Esitaikinan jauhot (g)</label><input type="number" id="prefFlour" value="150" inputmode="numeric"></div>
+    <div class="input-group"><label>Esitaikinan vesi (g)</label><input type="number" id="prefWater" value="150" inputmode="numeric"></div>
+    <div class="input-group"><label>Hunaja (g)</label><input type="number" id="honey" value="5" inputmode="numeric"></div>
+
+    <button onclick="calculateRecipe()">LASKE</button>
+
+    <div class="results" id="resultsBox">
+        <div class="ball-info">Yhden pallon paino: <span id="resBallWeight">0</span> g</div>
+
+        <h3 id="prefHeading">1. Esitaikinan ainekset</h3>
+        <div class="result-item" id="rowPrefFlour"><span>Esitaikinan jauhot:</span> <span class="highlight" id="resPrefFlour">0 g</span></div>
+        <div class="result-item" id="rowPrefWater"><span>Esitaikinan vesi:</span> <span class="highlight" id="resPrefWater">0 g</span></div>
+        <div class="result-item" id="rowPrefHoney"><span>Hunaja:</span> <span class="highlight" id="resHoney">0 g</span></div>
+        <div class="result-item" id="rowPrefYeast" style="display: none;"><span>Kuivahiiva:</span> <span class="highlight" id="resPrefYeast">0.0 g</span></div>
+
+        <h3>2. Päätaikinaan lisättävät</h3>
+        <div class="result-item"><span>Perusjauhot:</span> <span class="highlight" id="resFlour">0 g</span></div>
+        <div class="result-item"><span>Gluteenijauho:</span> <span class="highlight" id="resGluten">0 g</span></div>
+        <div class="result-item"><span>Vesi (pääerä):</span> <span class="highlight" id="resWaterMain">0 g</span></div>
+        <div class="result-item"><span>Vesi (10% sivuun):</span> <span class="highlight" id="resWaterSep">0 g</span></div>
+        <div class="result-item"><span>Suola:</span> <span class="highlight" id="resSalt">0 g</span></div>
+        <div class="result-item"><span>Oliiviöljy:</span> <span class="highlight" id="resOil">0 g</span></div>
+        <div class="result-item" id="rowMainYeast"><span>Kuivahiiva:</span> <span class="highlight" id="resMainYeast">0.0 g</span></div>
+
+        <hr>
+
+        <h3>🍅 Kastike & 🧀 Juusto</h3>
+        <div class="result-item"><span>Tuore mozzarella:</span> <span class="highlight" id="resMozzarella">0 kpl (0 g)</span></div>
+        <div class="result-item"><span>Kuorittuja tomaatteja:</span> <span class="highlight" id="resTomatoes">0 tlk</span></div>
+        <div class="result-item"><span>Suolaa (kastikkeeseen):</span> <span class="highlight" id="resSauceSalt">0 g</span></div>
+        <div class="result-item"><span>Oliiviöljyä (kastikkeeseen):</span> <span class="highlight" id="resSauceOil">0 g</span></div>
+        <div class="result-item"><span>Valkosipulinkynttä:</span> <span class="highlight" id="resGarlic">0 kpl</span></div>
+
+        <hr>
+
+        <h3>🔥 Paisto-ohje</h3>
+        <div class="instruction-box">
+            Lämmitä uuni <strong>maksimilämmölle</strong>. Paista pizzaa ensin <strong>5 minuuttia</strong> uunin keskitasolla ja sen jälkeen vielä <strong>3 minuuttia</strong> ylimmällä tasolla.
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateRecipe() {
+        const val = {
+            totalWeight: parseFloat(document.getElementById('totalWeight').value) || 0,
+            ballCount: parseFloat(document.getElementById('ballCount').value) || 1,
+            hydration: (parseFloat(document.getElementById('hydration').value) || 0) / 100,
+            salt: (parseFloat(document.getElementById('salt').value) || 0) / 100,
+            oil: (parseFloat(document.getElementById('oil').value) || 0) / 100,
+            gluten: (parseFloat(document.getElementById('gluten').value) || 0) / 100,
+            yeast: (parseFloat(document.getElementById('yeast').value) || 0) / 100,
+            prefFlour: parseFloat(document.getElementById('prefFlour').value) || 0,
+            prefWater: parseFloat(document.getElementById('prefWater').value) || 0,
+            honey: parseFloat(document.getElementById('honey').value) || 0
+        };
+
+        const ratioSum = 1 + val.hydration + val.salt + val.oil + val.yeast;
+        const totalFlour = (val.totalWeight - val.honey) / ratioSum;
+        const totalWater = totalFlour * val.hydration;
+        const scale = val.totalWeight / 1200;
+
+        document.getElementById('resBallWeight').innerText = Math.round(val.totalWeight / val.ballCount);
+        
+        // Esitaikinan ainekset
+        document.getElementById('resPrefFlour').innerText = val.prefFlour + " g";
+        document.getElementById('resPrefWater').innerText = val.prefWater + " g";
+        document.getElementById('resHoney').innerText = val.honey + " g";
+
+        // Päätaikinaan jäävät ainekset
+        document.getElementById('resFlour').innerText = Math.round(totalFlour - (totalFlour * val.gluten) - val.prefFlour) + " g";
+        document.getElementById('resGluten').innerText = Math.round(totalFlour * val.gluten) + " g";
+        
+        const separatedWater = totalWater * 0.10;
+        document.getElementById('resWaterMain').innerText = Math.round(totalWater - val.prefWater - separatedWater) + " g";
+        document.getElementById('resWaterSep').innerText = Math.round(separatedWater) + " g";
+        
+        document.getElementById('resSalt').innerText = Math.round(totalFlour * val.salt) + " g";
+        document.getElementById('resOil').innerText = Math.round(totalFlour * val.oil) + " g";
+        
+        // Hiivan sijoittelun logiikka
+        const yeastAmount = (totalFlour * val.yeast).toFixed(1) + " g";
+        const hasPreFerment = (val.prefFlour > 0 || val.prefWater > 0 || val.honey > 0);
+        
+        if (hasPreFerment) {
+            document.getElementById('rowPrefYeast').style.display = 'flex';
+            document.getElementById('resPrefYeast').innerText = yeastAmount;
+            document.getElementById('rowMainYeast').style.display = 'none';
+        } else {
+            document.getElementById('rowPrefYeast').style.display = 'none';
+            document.getElementById('rowMainYeast').style.display = 'flex';
+            document.getElementById('resMainYeast').innerText = yeastAmount;
+        }
+
+        // Kastike & Juusto
+        const mozzBalls = (3 * scale);
+        document.getElementById('resMozzarella').innerText = mozzBalls.toFixed(1).replace('.0', '') + " kpl (" + Math.round(mozzBalls * 125) + " g)";
+        document.getElementById('resTomatoes').innerText = (1 * scale).toFixed(1) + " tlk";
+        document.getElementById('resSauceSalt').innerText = Math.round(10 * scale) + " g";
+        document.getElementById('resSauceOil').innerText = Math.round(10 * scale) + " g";
+        document.getElementById('resGarlic').innerText = (1 * scale).toFixed(1) + " kpl";
+
+        document.getElementById('resultsBox').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
