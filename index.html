@@ -40,7 +40,7 @@
         h3 { color: var(--accent); margin-top: 20px; margin-bottom: 10px; font-size: 1.05rem; }
         .input-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 0.85rem; }
-        input, select { 
+        input[type="number"], select { 
             width: 100%; 
             padding: 10px; 
             border: 2px solid #edf2f4; 
@@ -51,6 +51,10 @@
             user-select: auto;
             background-color: #fff;
         }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .checkbox-group input { width: 22px; height: 22px; margin: 0; cursor: pointer; }
+        .checkbox-group label { display: inline; font-size: 0.95rem; font-weight: bold; color: var(--secondary); cursor: pointer; margin-bottom: 0; }
+        
         button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 15px; cursor: pointer; transition: background-color 0.2s;}
         button.btn-munkki { background-color: var(--munkki); }
         .results { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 15px; display: none; border: 1px solid #dee2e6; }
@@ -78,6 +82,11 @@
         </select>
     </div>
     
+    <div class="checkbox-group">
+        <input type="checkbox" id="wakeLockToggle" onchange="toggleWakeLock()">
+        <label for="wakeLockToggle">Pidä näyttö päällä</label>
+    </div>
+
     <hr>
 
     <div id="pizzaInputs">
@@ -193,6 +202,35 @@
 </div>
 
 <script>
+    // WAKE LOCK LOGIIKKA ALKAA TÄSTÄ
+    let wakeLock = null;
+
+    async function toggleWakeLock() {
+        const isChecked = document.getElementById('wakeLockToggle').checked;
+        if (isChecked) {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.error("Wake lock virhe:", err);
+                alert("Selaimesi ei tue näytön päällä pitämistä (Wake Lock API) tai sille ei ole annettu oikeuksia.");
+                document.getElementById('wakeLockToggle').checked = false;
+            }
+        } else {
+            if (wakeLock !== null) {
+                await wakeLock.release();
+                wakeLock = null;
+            }
+        }
+    }
+
+    // Jos käyttäjä poistuu selaimesta ja palaa, Wake Lock täytyy pyytää uudelleen
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+            wakeLock = await navigator.wakeLock.request('screen');
+        }
+    });
+    // WAKE LOCK LOGIIKKA PÄÄTTYY TÄHÄN
+
     function toggleView() {
         const type = document.getElementById('recipeType').value;
         const mainTitle = document.getElementById('mainTitle');
