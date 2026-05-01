@@ -1,6 +1,6 @@
 {
-  "name": "Pro Pizzalaskuri",
-  "short_name": "Pizzalaskuri",
+  "name": "Reseptit",
+  "short_name": "Reseptit",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f1faee",
