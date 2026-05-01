@@ -11,10 +11,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Pizzalaskuri">
+    <meta name="apple-mobile-web-app-title" content="Taikinalaskuri">
     <link rel="apple-touch-icon" href="icon.png">
     
-    <title>Pro Pizzalaskuri v7</title>
+    <title>Pro Taikinalaskuri</title>
     <style>
         :root {
             --primary: #e63946;
@@ -23,6 +23,7 @@
             --text: #1d3557;
             --card: #ffffff;
             --accent: #e07a5f;
+            --munkki: #f4a261;
         }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -39,7 +40,7 @@
         h3 { color: var(--accent); margin-top: 20px; margin-bottom: 10px; font-size: 1.05rem; }
         .input-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 0.85rem; }
-        input { 
+        input, select { 
             width: 100%; 
             padding: 10px; 
             border: 2px solid #edf2f4; 
@@ -48,13 +49,18 @@
             font-size: 16px; 
             -webkit-user-select: auto;
             user-select: auto;
+            background-color: #fff;
         }
-        button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 15px; cursor: pointer; transition: background-color 0.2s;}
+        button.btn-munkki { background-color: var(--munkki); }
         .results { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 15px; display: none; border: 1px solid #dee2e6; }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1rem; border-bottom: 1px dashed #ced4da; padding-bottom: 5px; }
         .highlight { font-weight: bold; color: var(--primary); }
+        .highlight-munkki { font-weight: bold; color: var(--accent); }
         .info-note { font-size: 0.85rem; color: #666; font-style: italic; margin-top: 5px; }
         .instruction-box { background-color: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 0.95rem; border: 1px solid #ffe69c; }
+        .instruction-box ol { margin-top: 5px; padding-left: 20px; }
+        .instruction-box li { margin-bottom: 8px; font-size: 0.85rem; line-height: 1.4; }
         .ball-info { background-color: #e1f5fe; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; text-align: center; color: var(--secondary); }
         hr { border: 0; height: 1px; background: #dee2e6; margin: 20px 0; }
     </style>
@@ -62,33 +68,52 @@
 <body>
 
 <div class="container">
-    <h1>🍕 Pro Pizzalaskuri</h1>
+    <h1 id="mainTitle">🍕 Pro Taikinalaskuri</h1>
+
+    <div class="input-group">
+        <label>Mitä leivotaan?</label>
+        <select id="recipeType" onchange="toggleView()">
+            <option value="pizza">Pizzataikina</option>
+            <option value="munkki">Master Rengasmunkki</option>
+        </select>
+    </div>
     
-    <div class="input-group">
-        <label>Taikinan kokonaispaino (g)</label>
-        <input type="number" id="totalWeight" value="1200" inputmode="numeric">
+    <hr>
+
+    <div id="pizzaInputs">
+        <div class="input-group">
+            <label>Taikinan kokonaispaino (g)</label>
+            <input type="number" id="totalWeight" value="1200" inputmode="numeric">
+        </div>
+        <div class="input-group">
+            <label>Pizzapallojen määrä (kpl)</label>
+            <input type="number" id="ballCount" value="4" inputmode="numeric">
+        </div>
+
+        <h2>Kertoimet (%)</h2>
+        <div class="input-group"><label>Vesi / Hydraatio (%)</label><input type="number" id="hydration" value="70" inputmode="decimal"></div>
+        <div class="input-group"><label>Suola (%)</label><input type="number" id="salt" value="2.0" inputmode="decimal"></div>
+        <div class="input-group"><label>Oliiviöljy (%)</label><input type="number" id="oil" value="2.0" inputmode="decimal"></div>
+        <div class="input-group"><label>Gluteenijauho (%)</label><input type="number" id="gluten" value="2.0" inputmode="decimal"></div>
+        <div class="input-group"><label>Kuivahiiva (%)</label><input type="number" id="yeast" value="0.2" inputmode="decimal" step="0.01"></div>
+
+        <h2>Esitaikina</h2>
+        <div class="input-group"><label>Esitaikinan jauhot (g)</label><input type="number" id="prefFlour" value="150" inputmode="numeric"></div>
+        <div class="input-group"><label>Esitaikinan vesi (g)</label><input type="number" id="prefWater" value="150" inputmode="numeric"></div>
+        <div class="input-group"><label>Hunaja (g)</label><input type="number" id="honey" value="5" inputmode="numeric"></div>
     </div>
 
-    <div class="input-group">
-        <label>Pizzapallojen määrä (kpl)</label>
-        <input type="number" id="ballCount" value="2" inputmode="numeric">
+    <div id="munkkiInputs" style="display: none;">
+        <div class="input-group">
+            <label>Munkkien määrä (kpl)</label>
+            <input type="number" id="donutCount" value="40" inputmode="numeric">
+        </div>
+        <p class="info-note">Yhden munkin taikinapaino on n. 62 grammaa.</p>
     </div>
 
-    <h2>Kertoimet (%)</h2>
-    <div class="input-group"><label>Vesi / Hydraatio (%)</label><input type="number" id="hydration" value="70" inputmode="decimal"></div>
-    <div class="input-group"><label>Suola (%)</label><input type="number" id="salt" value="2.0" inputmode="decimal"></div>
-    <div class="input-group"><label>Oliiviöljy (%)</label><input type="number" id="oil" value="2.0" inputmode="decimal"></div>
-    <div class="input-group"><label>Gluteenijauho (%)</label><input type="number" id="gluten" value="2.0" inputmode="decimal"></div>
-    <div class="input-group"><label>Kuivahiiva (%)</label><input type="number" id="yeast" value="0.2" inputmode="decimal" step="0.01"></div>
+    <button id="calcBtn" onclick="calculateRecipe()">LASKE</button>
 
-    <h2>Esitaikina</h2>
-    <div class="input-group"><label>Esitaikinan jauhot (g)</label><input type="number" id="prefFlour" value="150" inputmode="numeric"></div>
-    <div class="input-group"><label>Esitaikinan vesi (g)</label><input type="number" id="prefWater" value="150" inputmode="numeric"></div>
-    <div class="input-group"><label>Hunaja (g)</label><input type="number" id="honey" value="5" inputmode="numeric"></div>
-
-    <button onclick="calculateRecipe()">LASKE</button>
-
-    <div class="results" id="resultsBox">
+    <div class="results" id="pizzaResultsBox">
         <div class="ball-info">Yhden pallon paino: <span id="resBallWeight">0</span> g</div>
 
         <h3 id="prefHeading">1. Esitaikinan ainekset</h3>
@@ -122,10 +147,83 @@
             Lämmitä uuni <strong>maksimilämmölle</strong>. Paista pizzaa ensin <strong>5 minuuttia</strong> uunin keskitasolla ja sen jälkeen vielä <strong>3 minuuttia</strong> ylimmällä tasolla.
         </div>
     </div>
+
+    <div class="results" id="munkkiResultsBox">
+        <div class="ball-info" style="background-color: #fce4ec; color: #c2185b;">Taikinan kokonaispaino: <span id="resDonutTotalWeight">0</span> g</div>
+
+        <h3>1. Tangzhong (kiisseli)</h3>
+        <div class="result-item"><span>Kasvismaito:</span> <span class="highlight-munkki" id="resTzMilk">0 g</span></div>
+        <div class="result-item"><span>Caputo Pizzeria -jauhot:</span> <span class="highlight-munkki" id="resTzFlour">0 g</span></div>
+
+        <h3>2. Taikinan pohja (Autolyysi)</h3>
+        <div class="result-item"><span>Kasvismaito:</span> <span class="highlight-munkki" id="resDoughMilk">0 g</span></div>
+        <div class="result-item"><span>Caputo Pizzeria -jauhot:</span> <span class="highlight-munkki" id="resDoughFlour">0 g</span></div>
+
+        <h3>3. Taikinan rakentaminen</h3>
+        <div class="result-item"><span>Kuivahiiva:</span> <span class="highlight-munkki" id="resMunkkiYeast">0 g</span></div>
+        <div class="result-item"><span>Sokeri:</span> <span class="highlight-munkki" id="resMunkkiSugar">0 g</span></div>
+        <div class="result-item"><span>Kardemumma:</span> <span class="highlight-munkki" id="resMunkkiCardamom">0 g</span></div>
+        <div class="result-item"><span>Omenaviinietikka:</span> <span class="highlight-munkki" id="resMunkkiVinegar">0 g</span></div>
+        <div class="result-item"><span>Munanvalkuainen:</span> <span class="highlight-munkki" id="resMunkkiEgg">0 g</span></div>
+        <div class="result-item"><span>Gluteenijauho (valinnainen):</span> <span class="highlight-munkki" id="resMunkkiGluten">0 g</span></div>
+
+        <h3>4. Viimeistely (lisätään lopuksi)</h3>
+        <div class="result-item"><span>Suola:</span> <span class="highlight-munkki" id="resMunkkiSalt">0 g</span></div>
+        <div class="result-item"><span>Vegaaninen margariini:</span> <span class="highlight-munkki" id="resMunkkiMargarine">0 g</span></div>
+
+        <hr>
+
+        <h3>🍩 Valmistusohje</h3>
+        <div class="instruction-box" style="background-color: #fdf5e6; border-color: #f4a261;">
+            <ol>
+                <li><strong>Tangzhong:</strong> Sekoita maito ja jauhot kattilassa. Keitä keskilämmöllä kiisseliksi koko ajan sekoittaen. Jäähdytä täysin (väh. 30 min).</li>
+                <li><strong>Autolyysi:</strong> Sekoita taikinan maito, jauhot ja valmis tangzhong tasaiseksi. Ei hiivaa/sokeria. Vaivaa kevyesti 3–4 min, sitten lepo.</li>
+                <li><strong>Rakentaminen:</strong> Lisää hiiva, sokeri, kardemumma, omenaviinietikka, munanvalkuainen ja gluteenijauho. Vaivaa 5–6 min matalalla nopeudella.</li>
+                <li><strong>Suola + sitko:</strong> Lisää suola. Vaivaa 6–8 min keskiteholla kunnes elastinen.</li>
+                <li><strong>Rasvan emulgointi:</strong> Lisää margariini 3 erässä. Vaivaa sisään ennen seuraavaa. Jatka kunnes taikina läpäisee windowpane-testin.</li>
+                <li><strong>Kylmäkohotus (Päivä 1):</strong> Huoneenlämpö 30 min, jääkaappi 12–24 h (tavoite 1.2–1.5x kasvu).</li>
+                <li><strong>Jako (Päivä 2):</strong> Jaa palasiin ja esipyöristä. Lepo 10–15 min.</li>
+                <li><strong>Muotoilu:</strong> Pyöritä pallo. Työnnä peukalo keskeltä läpi ja venytä 3–4 cm reikä. Laita leikkauspaperin päälle.</li>
+                <li><strong>Toinen kohotus:</strong> 24–26 °C:ssa 1.5–2 h. (Reikä pysynyt auki, taikina palautuu sormella painettaessa hitaasti).</li>
+                <li><strong>Paisto:</strong> Öljy 170 °C. Laske papereineen öljyyn (poista paperi kun irtoaa). Paista ~1.5 min/puoli. Käännä vasta kun rengas näkyy selvästi. Reikä auki = oikea kohotus.</li>
+                <li><strong>Sokerointi/Glaze:</strong> Heti paiston jälkeen, hieman jäähtyneenä.</li>
+            </ol>
+        </div>
+    </div>
 </div>
 
 <script>
+    function toggleView() {
+        const type = document.getElementById('recipeType').value;
+        const mainTitle = document.getElementById('mainTitle');
+        const calcBtn = document.getElementById('calcBtn');
+        
+        document.getElementById('pizzaResultsBox').style.display = 'none';
+        document.getElementById('munkkiResultsBox').style.display = 'none';
+
+        if (type === 'pizza') {
+            mainTitle.innerText = "🍕 Pro Pizzalaskuri";
+            calcBtn.className = "";
+            document.getElementById('pizzaInputs').style.display = 'block';
+            document.getElementById('munkkiInputs').style.display = 'none';
+        } else {
+            mainTitle.innerText = "🍩 Master Rengasmunkki";
+            calcBtn.className = "btn-munkki";
+            document.getElementById('pizzaInputs').style.display = 'none';
+            document.getElementById('munkkiInputs').style.display = 'block';
+        }
+    }
+
     function calculateRecipe() {
+        const type = document.getElementById('recipeType').value;
+        if (type === 'pizza') {
+            calculatePizza();
+        } else {
+            calculateMunkki();
+        }
+    }
+
+    function calculatePizza() {
         const val = {
             totalWeight: parseFloat(document.getElementById('totalWeight').value) || 0,
             ballCount: parseFloat(document.getElementById('ballCount').value) || 1,
@@ -146,12 +244,10 @@
 
         document.getElementById('resBallWeight').innerText = Math.round(val.totalWeight / val.ballCount);
         
-        // Esitaikinan ainekset
         document.getElementById('resPrefFlour').innerText = val.prefFlour + " g";
         document.getElementById('resPrefWater').innerText = val.prefWater + " g";
         document.getElementById('resHoney').innerText = val.honey + " g";
 
-        // Päätaikinaan jäävät ainekset
         document.getElementById('resFlour').innerText = Math.round(totalFlour - (totalFlour * val.gluten) - val.prefFlour) + " g";
         document.getElementById('resGluten').innerText = Math.round(totalFlour * val.gluten) + " g";
         
@@ -162,7 +258,6 @@
         document.getElementById('resSalt').innerText = Math.round(totalFlour * val.salt) + " g";
         document.getElementById('resOil').innerText = Math.round(totalFlour * val.oil) + " g";
         
-        // Hiivan sijoittelun logiikka
         const yeastAmount = (totalFlour * val.yeast).toFixed(1) + " g";
         const hasPreFerment = (val.prefFlour > 0 || val.prefWater > 0 || val.honey > 0);
         
@@ -176,7 +271,6 @@
             document.getElementById('resMainYeast').innerText = yeastAmount;
         }
 
-        // Kastike & Juusto
         const mozzBalls = (3 * scale);
         document.getElementById('resMozzarella').innerText = mozzBalls.toFixed(1).replace('.0', '') + " kpl (" + Math.round(mozzBalls * 125) + " g)";
         document.getElementById('resTomatoes').innerText = (1 * scale).toFixed(1) + " tlk";
@@ -184,7 +278,38 @@
         document.getElementById('resSauceOil').innerText = Math.round(10 * scale) + " g";
         document.getElementById('resGarlic').innerText = (1 * scale).toFixed(1) + " kpl";
 
-        document.getElementById('resultsBox').style.display = 'block';
+        document.getElementById('pizzaResultsBox').style.display = 'block';
+        document.getElementById('munkkiResultsBox').style.display = 'none';
+    }
+
+    function calculateMunkki() {
+        const donutCount = parseFloat(document.getElementById('donutCount').value) || 40;
+        
+        // Alkuperäinen ohje on 40 munkille (yhteispaino 2486g)
+        const baseDonuts = 40;
+        const scale = donutCount / baseDonuts;
+
+        const totalWeight = Math.round(2486 * scale);
+        document.getElementById('resDonutTotalWeight').innerText = totalWeight;
+
+        document.getElementById('resTzMilk').innerText = (150 * scale).toFixed(1).replace('.0', '') + " g";
+        document.getElementById('resTzFlour').innerText = (40 * scale).toFixed(1).replace('.0', '') + " g";
+        
+        document.getElementById('resDoughMilk').innerText = (675 * scale).toFixed(1).replace('.0', '') + " g";
+        document.getElementById('resDoughFlour').innerText = (1220 * scale).toFixed(1).replace('.0', '') + " g";
+        
+        document.getElementById('resMunkkiYeast').innerText = (7 * scale).toFixed(1) + " g";
+        document.getElementById('resMunkkiSugar').innerText = (150 * scale).toFixed(1).replace('.0', '') + " g";
+        document.getElementById('resMunkkiCardamom').innerText = (10 * scale).toFixed(1) + " g";
+        document.getElementById('resMunkkiVinegar').innerText = (10 * scale).toFixed(1) + " g";
+        document.getElementById('resMunkkiEgg').innerText = (33 * scale).toFixed(1).replace('.0', '') + " g";
+        document.getElementById('resMunkkiGluten').innerText = (10 * scale).toFixed(1) + " g";
+        
+        document.getElementById('resMunkkiSalt').innerText = (21 * scale).toFixed(1) + " g";
+        document.getElementById('resMunkkiMargarine').innerText = (160 * scale).toFixed(1).replace('.0', '') + " g";
+
+        document.getElementById('pizzaResultsBox').style.display = 'none';
+        document.getElementById('munkkiResultsBox').style.display = 'block';
     }
 </script>
 
