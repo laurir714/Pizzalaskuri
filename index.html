@@ -51,9 +51,6 @@
             user-select: auto;
             background-color: #fff;
         }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .checkbox-group input { width: 22px; height: 22px; margin: 0; cursor: pointer; }
-        .checkbox-group label { display: inline; font-size: 0.95rem; font-weight: bold; color: var(--secondary); cursor: pointer; margin-bottom: 0; }
         
         button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 15px; cursor: pointer; transition: background-color 0.2s;}
         button.btn-munkki { background-color: var(--munkki); }
@@ -82,11 +79,6 @@
         </select>
     </div>
     
-    <div class="checkbox-group">
-        <input type="checkbox" id="wakeLockToggle" onchange="toggleWakeLock()">
-        <label for="wakeLockToggle">Pidä näyttö päällä</label>
-    </div>
-
     <hr>
 
     <div id="pizzaInputs">
@@ -202,34 +194,28 @@
 </div>
 
 <script>
-    // WAKE LOCK LOGIIKKA ALKAA TÄSTÄ
+    // AUTOMAATTINEN WAKE LOCK LISÄTTY TÄHÄN
     let wakeLock = null;
 
-    async function toggleWakeLock() {
-        const isChecked = document.getElementById('wakeLockToggle').checked;
-        if (isChecked) {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-            } catch (err) {
-                console.error("Wake lock virhe:", err);
-                alert("Selaimesi ei tue näytön päällä pitämistä (Wake Lock API) tai sille ei ole annettu oikeuksia.");
-                document.getElementById('wakeLockToggle').checked = false;
-            }
-        } else {
-            if (wakeLock !== null) {
-                await wakeLock.release();
-                wakeLock = null;
-            }
+    async function requestWakeLock() {
+        if (wakeLock !== null && !wakeLock.released) return;
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log("Näyttö lukittu pysymään päällä.");
+        } catch (err) {
+            console.warn("Näytön lukitseminen epäonnistui:", err);
         }
     }
 
-    // Jos käyttäjä poistuu selaimesta ja palaa, Wake Lock täytyy pyytää uudelleen
+    // Pyydetään lupaa pitää näyttö päällä heti kun käyttäjä koskettaa tai klikkaa mitä tahansa ruudulla (esim. aktivoi tekstikentän)
+    document.addEventListener('pointerdown', requestWakeLock, { once: false });
+
+    // Jos käyttäjä käy toisessa sovelluksessa ja palaa takaisin, selain vapauttaa lukituksen automaattisesti. Pyydetään se uudelleen.
     document.addEventListener('visibilitychange', async () => {
-        if (wakeLock !== null && document.visibilityState === 'visible') {
-            wakeLock = await navigator.wakeLock.request('screen');
+        if (document.visibilityState === 'visible') {
+            requestWakeLock();
         }
     });
-    // WAKE LOCK LOGIIKKA PÄÄTTYY TÄHÄN
 
     function toggleView() {
         const type = document.getElementById('recipeType').value;
