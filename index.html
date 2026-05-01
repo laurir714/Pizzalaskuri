@@ -11,10 +11,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Taikinalaskuri">
+    <meta name="apple-mobile-web-app-title" content="Reseptit">
     <link rel="apple-touch-icon" href="icon.png">
     
-    <title>Pro Taikinalaskuri</title>
+    <title>Reseptit</title>
     <style>
         :root {
             --primary: #e63946;
@@ -69,7 +69,7 @@
 <body>
 
 <div class="container">
-    <h1 id="mainTitle">🍕 Pro Taikinalaskuri</h1>
+    <h1 id="mainTitle">🍕 Reseptit</h1>
 
     <div class="input-group">
         <label>Mitä leivotaan?</label>
@@ -226,12 +226,12 @@
         document.getElementById('munkkiResultsBox').style.display = 'none';
 
         if (type === 'pizza') {
-            mainTitle.innerText = "🍕 Pro Pizzalaskuri";
+            mainTitle.innerText = "🍕 Reseptit";
             calcBtn.className = "";
             document.getElementById('pizzaInputs').style.display = 'block';
             document.getElementById('munkkiInputs').style.display = 'none';
         } else {
-            mainTitle.innerText = "🍩 Master Rengasmunkki";
+            mainTitle.innerText = "🍩 Reseptit";
             calcBtn.className = "btn-munkki";
             document.getElementById('pizzaInputs').style.display = 'none';
             document.getElementById('munkkiInputs').style.display = 'block';
